@@ -1,0 +1,9 @@
+# The smallest useful configuration: one proxy, one target you control.
+targets:
+  - name: own-health
+    url: http://health.example.com:8080/healthz   # e.g. `proxy-monitor target -listen 0.0.0.0:8080`
+    expect_body: ok
+
+proxies:
+  - name: office-proxy
+    url: http://proxy.internal.example:3128

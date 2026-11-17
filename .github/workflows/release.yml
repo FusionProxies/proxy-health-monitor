@@ -1,0 +1,25 @@
+# On a version tag, build and test the binaries and attach them to a DRAFT
+# release. A maintainer reviews the draft and publishes it by hand.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test -count=1 ./...
+      - run: scripts/build-release.sh "${GITHUB_REF_NAME}"
+      - name: Create a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --draft --verify-tag --title "${GITHUB_REF_NAME}" --notes "See CHANGELOG.md. Verify downloads with checksums.txt."

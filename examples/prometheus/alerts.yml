@@ -1,0 +1,37 @@
+groups:
+  - name: proxy-monitor
+    rules:
+      - alert: ProxyDown
+        expr: proxy_monitor_state{state="down"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Proxy {{ $labels.proxy }} is down"
+
+      - alert: ProxySuccessRateLow
+        # Share of successful checks over 30 minutes, from the counters.
+        expr: |
+          sum by (proxy) (increase(proxy_monitor_checks_total{result="success"}[30m]))
+            / sum by (proxy) (increase(proxy_monitor_checks_total[30m])) < 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Proxy {{ $labels.proxy }} answers fewer than 90% of checks"
+
+      - alert: ProxySlow
+        expr: |
+          histogram_quantile(0.95, sum by (proxy, le) (rate(proxy_monitor_check_duration_seconds_bucket[30m]))) > 5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 check time of {{ $labels.proxy }} is above 5s"
+
+      - alert: ProxyMonitorStale
+        expr: time() - proxy_monitor_last_check_timestamp_seconds > 900
+        labels:
+          severity: warning
+        annotations:
+          summary: "No check of {{ $labels.proxy }} for 15 minutes"

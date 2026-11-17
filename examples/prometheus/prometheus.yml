@@ -1,0 +1,13 @@
+# Scrape proxy-monitor. With server.auth_token set, Prometheus sends it as a
+# bearer token; keep the token in a file readable only by Prometheus.
+scrape_configs:
+  - job_name: proxy-monitor
+    scrape_interval: 30s
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/proxy-monitor.token
+    static_configs:
+      - targets: ["127.0.0.1:8090"]
+
+rule_files:
+  - alerts.yml

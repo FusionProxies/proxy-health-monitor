@@ -1,0 +1,64 @@
+# Monitoring a Fusion Proxy residential gateway (https://fusionproxy.net).
+#
+# Endpoint facts, from the provider's documentation
+# (https://github.com/FusionProxies/fusionproxy):
+#   - HTTP and HTTPS (CONNECT): resi.fusionproxy.net:12286, a new exit IP on
+#     every request; ports 13000 to 15000 each keep one IP for up to 1 hour.
+#   - SOCKS5: resi.fusionproxy.net:5390, TCP CONNECT with username/password.
+#     UDP ASSOCIATE is not supported, and this monitor never uses it.
+#   - Location goes in the username, e.g. USER-country-us. A hyphen inside a
+#     sub-user name breaks parsing (the proxy answers 407).
+#
+# Residential traffic is billed per GB, and health checks are traffic too.
+# An HTTPS check costs a few KB (mostly the TLS handshake); a plain HTTP check
+# to a tiny endpoint costs well under 1 KB. The dashboard shows the bytes of
+# every check, and /metrics exports proxy_monitor_check_bytes_total, so you can
+# measure the cost. A 5 minute interval is a sensible start.
+#
+# Export your credentials first:
+#   export FUSION_USER=your_username FUSION_PASS=your_password
+
+monitor:
+  interval: 5m
+  timeout: 20s
+
+thresholds:
+  failure_threshold: 3
+  recovery_threshold: 2
+  latency: 5s            # residential exits are slower than datacenter proxies
+  availability: 90
+  availability_window: 2h
+  availability_min_checks: 12
+
+targets:
+  # Your own endpoint: run `proxy-monitor target -listen 0.0.0.0:8080` on a
+  # server you control. Plain HTTP keeps each check small.
+  - name: own-health
+    url: http://health.example.com:8080/healthz
+    expect_body: ok
+
+proxies:
+  - name: fusion-resi-us-http
+    url: http://resi.fusionproxy.net:12286
+    username: ${FUSION_USER}-country-us
+    password: ${FUSION_PASS}
+    labels:
+      provider: fusionproxy
+      country: us
+
+  - name: fusion-resi-de-socks5
+    url: socks5h://resi.fusionproxy.net:5390
+    username: ${FUSION_USER}-country-de
+    password: ${FUSION_PASS}
+    labels:
+      provider: fusionproxy
+      country: de
+
+  # One sticky port (13000-15000 keep their IP for up to an hour).
+  - name: fusion-resi-port-13000
+    url: http://resi.fusionproxy.net:13000
+    username: ${FUSION_USER}
+    password: ${FUSION_PASS}
+    interval: 10m
+    labels:
+      provider: fusionproxy

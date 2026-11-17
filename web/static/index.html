@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="no-referrer">
+  <title>Proxy Health Monitor</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#/" aria-label="Proxy Health Monitor, overview">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#26C7D3"/>
+            <stop offset="1" stop-color="#1e8bff"/>
+          </linearGradient>
+        </defs>
+        <rect x="1" y="1" width="30" height="30" rx="8" fill="url(#bm)"/>
+        <path d="M5 17h5l2.5-6 4 11 3-8 1.8 3H27" fill="none" stroke="#06121f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">Proxy Health Monitor</span>
+        <span class="brand-sub">by Fusion Proxy</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#/" data-nav="overview">Overview</a>
+      <a href="#/incidents" data-nav="incidents">Incidents</a>
+      <a href="#/settings" data-nav="settings">Settings</a>
+    </nav>
+    <div class="refresh" id="refresh" aria-live="polite"></div>
+  </header>
+  <div id="demo-banner" class="demo-banner" hidden>
+    <strong>DEMO DATA.</strong> Every number on this page comes from real checks against local test proxies on 127.0.0.1, started by <code>proxy-monitor demo</code>. No real proxy is involved.
+  </div>
+  <main id="app" class="main" tabindex="-1">
+    <p class="loading">Loading...</p>
+  </main>
+  <footer class="foot">
+    <span id="version"></span>
+    <span>Open source, MIT. <a href="https://github.com/FusionProxies/proxy-health-monitor" rel="noopener">GitHub</a></span>
+  </footer>
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

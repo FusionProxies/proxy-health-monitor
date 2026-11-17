@@ -1,0 +1,8 @@
+dist/
+*.exe
+*.db
+*.db-wal
+*.db-shm
+# Local configuration may hold secrets; keep it out of the repository.
+/proxy-monitor.yaml
+.env

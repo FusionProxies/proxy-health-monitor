@@ -1,0 +1,83 @@
+# proxy-monitor configuration
+#
+# List only proxies you own or are explicitly authorized to monitor, and only
+# targets you control. The monitor contacts nothing that is not in this file.
+#
+# Secrets: write ${VARIABLE} and the value is read from the environment when
+# the file is loaded, so passwords and tokens stay out of the file. Use $$ for
+# a literal dollar sign.
+
+storage:
+  path: proxy-monitor.db        # relative paths are relative to this file
+  retention: 30d                # raw check results
+  incident_retention: 180d      # incidents and the alert history
+
+server:
+  listen: 127.0.0.1:8090        # dashboard, REST API and /metrics
+  # auth_token: ${PROXY_MONITOR_TOKEN}   # required when listen is not on localhost
+  # allowed_hosts: [monitor.example.com] # extra Host names, for a reverse proxy
+
+monitor:
+  interval: 60s                 # default per proxy; never below 10s for remote proxies
+  timeout: 10s
+  jitter: 0.1                   # spread checks by up to 10% of the interval
+  concurrency: 4                # checks running at the same time, all proxies together
+
+thresholds:
+  failure_threshold: 3          # consecutive failures before a proxy is down
+  recovery_threshold: 2         # consecutive successes before it counts as recovered
+  latency: 3s                   # median of the last latency_samples checks above this = degraded
+  latency_samples: 5
+  availability: 95              # percent of successful checks in availability_window
+  availability_window: 1h
+  availability_min_checks: 10
+
+# Endpoints the checks request through each proxy. Use your own health
+# endpoint (`proxy-monitor target` runs a tiny one) or another URL you are
+# allowed to load repeatedly.
+targets:
+  - name: own-health
+    url: https://health.example.com/healthz
+    expect_status: [200]
+    expect_body: ok             # optional: the response body must contain this text
+    max_concurrent: 2           # at most 2 checks against this target at once
+    min_spacing: 500ms          # and at least 500ms between two of them
+
+proxies:
+  - name: office-http
+    url: http://proxy.internal.example:3128
+    target: own-health
+    labels:
+      site: office
+
+  - name: vendor-socks5
+    url: socks5h://proxy.vendor.example:1080   # socks5h: the proxy resolves the target name
+    username: ${VENDOR_PROXY_USER}
+    password: ${VENDOR_PROXY_PASS}
+    target: own-health
+    interval: 2m
+    labels:
+      provider: vendor
+
+alerts:
+  cooldown: 10m                 # suppress a repeat of the same alert for a proxy
+  max_per_minute: 20            # above this, alerts are summarized instead of sent
+  repeat_interval: 0            # reminders while a proxy stays down (0 = off, else >= 5m)
+  console: true                 # write alerts to the log
+  # webhooks:
+  #   - name: ops
+  #     url: https://hooks.example.com/proxy-monitor
+  #     secret: ${WEBHOOK_SECRET}            # signs the body (X-Proxy-Monitor-Signature)
+  #     events: [down, recovered]
+  # email:
+  #   host: smtp.example.com
+  #   port: 587
+  #   username: ${SMTP_USER}
+  #   password: ${SMTP_PASS}
+  #   from: proxy-monitor@example.com
+  #   to: [ops@example.com]
+  # telegram:
+  #   bot_token: ${TELEGRAM_BOT_TOKEN}
+  #   chat_id: ${TELEGRAM_CHAT_ID}
+  # discord:
+  #   - webhook_url: ${DISCORD_WEBHOOK_URL}

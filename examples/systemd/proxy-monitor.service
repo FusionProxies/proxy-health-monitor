@@ -1,0 +1,35 @@
+# /etc/systemd/system/proxy-monitor.service
+#
+#   useradd --system --home /var/lib/proxy-monitor --shell /usr/sbin/nologin proxy-monitor
+#   install -m 0755 proxy-monitor_linux_amd64 /usr/local/bin/proxy-monitor
+#   install -d -o proxy-monitor -m 0750 /var/lib/proxy-monitor /etc/proxy-monitor
+#   # config: /etc/proxy-monitor/proxy-monitor.yaml with storage.path: /var/lib/proxy-monitor/proxy-monitor.db
+#   # secrets: /etc/proxy-monitor/env (mode 0600), e.g. PROXY_MONITOR_TOKEN=...
+#   systemctl daemon-reload && systemctl enable --now proxy-monitor
+[Unit]
+Description=Proxy Health Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=proxy-monitor
+EnvironmentFile=/etc/proxy-monitor/env
+ExecStart=/usr/local/bin/proxy-monitor start -config /etc/proxy-monitor/proxy-monitor.yaml -log-format json
+Restart=on-failure
+RestartSec=5s
+# Graceful shutdown: in-flight checks finish, queued alerts are delivered.
+TimeoutStopSec=30s
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/proxy-monitor
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

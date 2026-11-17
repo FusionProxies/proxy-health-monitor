@@ -1,0 +1,74 @@
+# Tests, lint and cross-platform builds. Everything runs against local test
+# proxies on 127.0.0.1: no workflow here contacts any third-party site.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Test
+        run: go test -count=1 ./...
+      - name: Test with the race detector
+        if: matrix.os == 'ubuntu-latest'
+        run: go test -race -count=1 ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - name: go vet
+        run: go vet ./...
+      - name: staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./...
+      - name: Dashboard script syntax
+        run: node --check web/static/app.js
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Cross-compile
+        run: scripts/build-release.sh "ci-${GITHUB_SHA::7}"
+      - name: Smoke test the Linux binary
+        run: |
+          dist/proxy-monitor_linux_amd64 version
+          dist/proxy-monitor_linux_amd64 init -config /tmp/pm.yaml
+          VENDOR_PROXY_USER=u VENDOR_PROXY_PASS=p dist/proxy-monitor_linux_amd64 validate -config /tmp/pm.yaml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+          retention-days: 7
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image (not pushed)
+        run: docker build -t proxy-health-monitor:ci .

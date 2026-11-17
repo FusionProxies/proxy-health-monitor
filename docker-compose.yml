@@ -1,0 +1,25 @@
+# docker compose up -d
+#
+# 1. Copy examples/docker/proxy-monitor.yaml to ./config/proxy-monitor.yaml and
+#    list your own proxies and target.
+# 2. Put secrets in .env next to this file (never commit it):
+#      PROXY_MONITOR_TOKEN=<at least 16 random characters>
+#      PROXY_USER=...
+#      PROXY_PASS=...
+# 3. Open http://127.0.0.1:8090 and log in with any username and the token.
+services:
+  proxy-monitor:
+    build: .
+    image: proxy-health-monitor:local
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config:/config:ro
+      - proxy-monitor-data:/data
+    ports:
+      # Published on the host's loopback only. Put a reverse proxy with TLS in
+      # front of it before exposing the dashboard to a network.
+      - "127.0.0.1:8090:8090"
+
+volumes:
+  proxy-monitor-data:

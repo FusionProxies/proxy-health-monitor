@@ -1,0 +1,21 @@
+# Configuration for docker-compose.yml. Secrets come from .env.
+storage:
+  path: /data/proxy-monitor.db
+
+server:
+  # Inside the container the server must listen on all interfaces; Compose
+  # publishes the port on the host's 127.0.0.1 only. The token is required
+  # because the listen address is not loopback.
+  listen: 0.0.0.0:8090
+  auth_token: ${PROXY_MONITOR_TOKEN}
+
+targets:
+  - name: own-health
+    url: https://health.example.com/healthz
+    expect_body: ok
+
+proxies:
+  - name: primary
+    url: http://proxy.example.com:3128
+    username: ${PROXY_USER}
+    password: ${PROXY_PASS}
