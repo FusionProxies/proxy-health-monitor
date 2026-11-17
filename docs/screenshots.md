@@ -1,12 +1,12 @@
 # How the screenshots are made
 
-The screenshots in the README are taken from the real dashboard running in demo mode:
+Screenshots of the dashboard are taken from the real dashboard running in demo mode, never from mock-ups:
 
 ```bash
 proxy-monitor demo
 ```
 
-Demo mode starts seven local test proxies on `127.0.0.1` with different behaviours (a healthy forward proxy, CONNECT and SOCKS5 proxies with authentication, a slow SOCKS5 proxy, a CONNECT proxy that fails about one request in five, a proxy with a scripted outage of 2 minutes in every 9, and one with a rotated password) and runs the normal monitor against them every 5 seconds. Every number on the screenshots comes from those real checks. The dashboard shows a "DEMO DATA" banner on every page in this mode, and the banner is visible in every screenshot.
+Demo mode starts seven local test proxies on `127.0.0.1` with different behaviours (a healthy forward proxy, CONNECT and SOCKS5 proxies with authentication, a slow SOCKS5 proxy, a CONNECT proxy that fails about one request in five, a proxy with a scripted outage of 2 minutes in every 9, and one with a rotated password) and runs the normal monitor against them every 5 seconds. Every number on the screenshots comes from those real checks. The dashboard shows a "DEMO DATA" banner on every page in this mode; keep it visible in every screenshot.
 
 To reproduce them:
 

@@ -20,10 +20,6 @@
 
 `proxy-monitor` checks the proxies you run, or are authorized to monitor, on a schedule. Each check goes through the proxy to a health endpoint you control. It times every phase, classifies every failure, keeps the history in SQLite, opens and closes incidents, and sends alerts. A local dashboard, a REST API and Prometheus metrics come with it. It is one binary with no external services, and it works with any provider.
 
-![Overview of the dashboard, running on demo data](assets/screenshots/overview.png)
-
-<sub>Screenshot of the real dashboard in `proxy-monitor demo` mode: every number comes from checks against local test proxies, and the page says so.</sub>
-
 ## Contents
 
 - [Features](#features)
@@ -187,9 +183,7 @@ $ proxy-monitor report -since 1h -format markdown
 
 ## Dashboard
 
-| Proxy detail | Incidents |
-|---|---|
-| ![Proxy detail page with latency and availability charts, demo data](assets/screenshots/proxy-detail.png) | ![Incidents and alert history, demo data](assets/screenshots/incidents.png) |
+See it without any proxy: `proxy-monitor demo` serves the real dashboard on local test proxies, with a "DEMO DATA" banner on every page.
 
 - **Overview:** proxies configured, healthy, degraded and down, a 24-hour availability strip per proxy, median and p95 latency, the last error, and recent incidents. Filter by state, name, label or protocol.
 - **Proxy detail:** availability for 1h, 24h, 7d and 30d; latency (p50 and p95 against the threshold) and availability charts with hover details; where the time goes (DNS, connect, handshake, TLS, TTFB); recent errors; incidents; and a table of the latest checks.
