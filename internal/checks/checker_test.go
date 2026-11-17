@@ -2,6 +2,7 @@ package checks
 
 import (
 	"context"
+	"io"
 	"net"
 	"strings"
 	"testing"
@@ -300,7 +301,17 @@ func TestWrongProtocol(t *testing.T) {
 			if err != nil {
 				return
 			}
+			// Read the client's bytes first, as a real proxy does: closing a
+			// socket with unread data sends a reset that can overtake the
+			// answer (Windows does this reliably).
+			_ = c.SetDeadline(time.Now().Add(2 * time.Second))
+			buf := make([]byte, 64)
+			_, _ = c.Read(buf)
 			_, _ = c.Write([]byte("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"))
+			if tc, ok := c.(*net.TCPConn); ok {
+				_ = tc.CloseWrite()
+			}
+			_, _ = io.Copy(io.Discard, c)
 			_ = c.Close()
 		}
 	}()
