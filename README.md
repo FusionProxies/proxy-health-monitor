@@ -138,6 +138,7 @@ Every key, default and limit: [docs/configuration.md](docs/configuration.md). Mo
 | `proxy-monitor init` | Write an annotated sample configuration (`-config`, `-force`) |
 | `proxy-monitor validate` | Check a configuration without contacting anything |
 | `proxy-monitor check` | Check each proxy once and exit, with `-proxy a,b` to pick proxies and `-json` for scripts. Exit code `1` if any check fails |
+| `proxy-monitor doctor` | Check **one proxy URL without a config file** and explain in plain language what is wrong and what to try. Also catches broken URLs and proxy environment variables. See [docs/doctor.md](docs/doctor.md) |
 | `proxy-monitor start` | Run the monitor (`-log-level`, `-log-format text\|json`). Ctrl+C or SIGTERM stops it gracefully |
 | `proxy-monitor status` | The current state of every proxy, from the database. Exit code `1` if any proxy is down |
 | `proxy-monitor report` | Uptime and latency for a period: `-since 24h\|7d\|30d`, `-format table\|json\|csv\|markdown`, `-proxy` |
@@ -303,6 +304,8 @@ Residential traffic is billed per GB, and checks are traffic too. The dashboard 
 Details and deployment advice: [docs/security.md](docs/security.md).
 
 ## Troubleshooting
+
+For a single proxy that does not work, start with `proxy-monitor doctor <proxy-url>`: it runs one check, shows which step failed, and explains the cause (407 login errors, wrong scheme for the port, IP allowlists, `socks5` versus `socks5h`, `HTTPS_PROXY` mistakes). Details in [docs/doctor.md](docs/doctor.md).
 
 | Error class | Usual cause | What to try |
 |---|---|---|

@@ -43,6 +43,7 @@ func init() {
 		{"init", "write an annotated sample configuration", cmdInit},
 		{"validate", "check a configuration file without contacting anything", cmdValidate},
 		{"check", "check every proxy once and exit (non-zero if any fails)", cmdCheck},
+		{"doctor", "check one proxy URL and explain what is wrong (no config file needed)", cmdDoctor},
 		{"start", "run the monitor: scheduled checks, alerts, dashboard and API", cmdStart},
 		{"status", "show the current state of every proxy from the database", cmdStatus},
 		{"report", "uptime and latency report for a period (table, JSON, CSV, Markdown)", cmdReport},

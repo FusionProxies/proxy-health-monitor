@@ -70,6 +70,7 @@ func (c *Checker) Check(parent context.Context, p *config.Proxy) Result {
 			msg += "; the proxy sent nothing back: it may be overloaded, or this port may not speak " + map[bool]string{true: "SOCKS5", false: "HTTP"}[p.IsSOCKS()]
 		}
 		res.Class = ce.class
+		res.Phase = phaseOf(phase)
 		res.Error = redact.String(msg)
 		return res
 	}

@@ -6,6 +6,7 @@ package checks
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -30,6 +31,35 @@ const (
 	ClassCanceled   Class = "canceled"             // the monitor is shutting down; not recorded
 )
 
+// Phases of a check, in order. A failed Result names the one it stopped in.
+const (
+	PhaseDNS       = "dns"             // resolving the proxy host
+	PhaseConnect   = "connect"         // TCP connect to the proxy
+	PhaseHandshake = "proxy_handshake" // TLS to an https:// proxy, CONNECT or SOCKS5 (incl. socks5:// local target lookup)
+	PhaseTargetTLS = "target_tls"      // TLS with an https:// target through the tunnel
+	PhaseResponse  = "response"        // sending the request and reading the answer
+)
+
+// phaseOf maps the human phase description used in error messages to its
+// stable key.
+func phaseOf(desc string) string {
+	switch {
+	case desc == "":
+		return ""
+	case strings.HasPrefix(desc, "the DNS lookup of the proxy host"):
+		return PhaseDNS
+	case strings.HasPrefix(desc, "the TCP connect"):
+		return PhaseConnect
+	case strings.HasPrefix(desc, "the TLS handshake with the target"):
+		return PhaseTargetTLS
+	case strings.HasPrefix(desc, "the TLS handshake with the proxy"), strings.HasPrefix(desc, "the SOCKS5 handshake"),
+		strings.HasPrefix(desc, "the CONNECT handshake"), strings.HasPrefix(desc, "the local DNS lookup of the target"):
+		return PhaseHandshake
+	default:
+		return PhaseResponse
+	}
+}
+
 // AllClasses lists every failure class, for documentation and metrics.
 var AllClasses = []Class{ClassDNS, ClassRefused, ClassConnect, ClassTimeout, ClassAuth, ClassProtocol, ClassRejected, ClassUpstream, ClassProxyError, ClassTLS, ClassStatus, ClassBody}
 
@@ -40,7 +70,8 @@ type Result struct {
 	Time       time.Time     `json:"time"`
 	OK         bool          `json:"ok"`
 	Class      Class         `json:"error_class,omitempty"`
-	Error      string        `json:"error,omitempty"` // already redacted
+	Phase      string        `json:"failed_phase,omitempty"` // Phase* constant; empty on success
+	Error      string        `json:"error,omitempty"`        // already redacted
 	StatusCode int           `json:"status_code,omitempty"`
 	DNS        time.Duration `json:"dns"`
 	Connect    time.Duration `json:"connect"`
